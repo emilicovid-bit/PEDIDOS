@@ -1,3 +1,5 @@
+
+
 <!DOCTYPE html>
 <html lang="es">
 <head>
@@ -31,7 +33,7 @@
     .producto-row { display: flex; align-items: center; gap: 6px; margin-bottom: 6px; flex-wrap: wrap; }
     .producto-row select { padding: 6px 8px; border: 1px solid #ddd; border-radius: 8px; font-size: 0.85rem; flex: 1; min-width: 120px; }
     .producto-row input[type="number"] { width: 50px; padding: 6px; border: 1px solid #ddd; border-radius: 8px; font-size: 0.85rem; text-align: center; }
-    .producto-row .subtotal { font-size: 0.8rem; color: #2e7d32; font-weight: 600; min-width: 70px; text-align: right; }
+    .producto-row .subtotal { font-size: 0.8rem; color: #2e7d32; font-weight: 600; min-width: 80px; text-align: right; }
     .btn-mas-prod { padding: 6px 12px; border: none; border-radius: 8px; background: #e3f2fd; color: #1565c0; font-weight: 600; cursor: pointer; font-size: 0.8rem; margin-top: 4px; }
     .btn-guardar { width: 100%; padding: 14px; margin-top: 12px; border: none; border-radius: 12px; background: #2e7d32; color: #fff; font-weight: 700; font-size: 1rem; cursor: pointer; }
     .btn-guardar:hover { background: #1b5e20; }
@@ -45,7 +47,7 @@
     .precio-card { background: #f3e5f5; border-radius: 12px; padding: 12px; margin-bottom: 10px; display: flex; align-items: center; justify-content: space-between; }
     .precio-label { font-weight: 600; color: #4a148c; font-size: 0.95rem; }
     .precio-actual { color: #6a1b9a; font-size: 0.85rem; }
-    .precio-input { width: 90px; padding: 6px 8px; border: 1px solid #ddd; border-radius: 8px; font-size: 0.9rem; text-align: right; }
+    .precio-input { width: 100px; padding: 6px 8px; border: 1px solid #ddd; border-radius: 8px; font-size: 0.9rem; text-align: right; }
     .pedido-item { background: #e3f2fd; padding: 8px 12px; border-radius: 8px; margin-bottom: 6px; display: flex; justify-content: space-between; align-items: center; font-size: 0.9rem; }
     .btn-eliminar { background: #ffebee; border: none; border-radius: 6px; color: #c62828; cursor: pointer; padding: 4px 8px; font-size: 0.8rem; }
     .resumen-cliente { background: #fff; border-radius: 10px; padding: 10px; margin-bottom: 8px; box-shadow: 0 1px 4px rgba(0,0,0,0.06); }
@@ -54,16 +56,6 @@
     .badge-fiado { background: #fff3e0; color: #ef6c00; padding: 2px 8px; border-radius: 12px; font-size: 0.75rem; font-weight: 600; }
     .badge-contado { background: #e8f5e9; color: #2e7d32; padding: 2px 8px; border-radius: 12px; font-size: 0.75rem; font-weight: 600; }
     .sin-clientes { text-align: center; color: #888; padding: 20px; font-style: italic; }
-    .btn-cantidad { width: 32px; height: 32px; border: none; border-radius: 8px; font-size: 1.1rem; font-weight: bold; cursor: pointer; }
-    .btn-menos { background: #ffebee; color: #c62828; }
-    .btn-mas { background: #e8f5e9; color: #2e7d32; }
-    .cantidad-valor { min-width: 28px; text-align: center; font-weight: 700; font-size: 1.1rem; color: #333; }
-    .cantidad-control { display: flex; align-items: center; gap: 8px; }
-    .producto-info { flex: 1; }
-    .producto-nombre { font-weight: 600; color: #333; font-size: 0.95rem; }
-    .producto-precio { color: #666; font-size: 0.8rem; }
-    .costo-detalle { font-size: 0.75rem; color: #888; margin-top: 2px; }
-    .costo-total { font-weight: 700; color: #2e7d32; }
   </style>
 </head>
 <body>
@@ -125,10 +117,10 @@
   <!-- RESUMEN GENERAL -->
   <div class="resumen-box">
     <div class="resumen-titulo">📊 Total del Día</div>
-    <div class="resumen-fila"><span>Contado:</span><span id="totalContado">$0</span></div>
-    <div class="resumen-fila"><span>Fiado:</span><span id="totalFiado">$0</span></div>
+    <div class="resumen-fila"><span>Contado:</span><span id="totalContado">$0,00</span></div>
+    <div class="resumen-fila"><span>Fiado:</span><span id="totalFiado">$0,00</span></div>
     <div class="resumen-fila"><span>Pedidos:</span><span id="totalPedidos">0</span></div>
-    <div class="resumen-fila resumen-total"><span>TOTAL:</span><span id="granTotal">$0</span></div>
+    <div class="resumen-fila resumen-total"><span>TOTAL:</span><span id="granTotal">$0,00</span></div>
   </div>
 
   <button class="btn-guardar" onclick="guardarRegistro()">💾 Guardar Registro del Día</button>
@@ -137,12 +129,12 @@
 
 <script>
   let precios = {
-    'Café Selecto': 25000,
-    'Café Premium': 30000,
-    'Café Clásico': 18000,
-    'Huevos': 15000,
-    'Maní 200gr': 5000,
-    'Maní 400gr': 9000
+    'Café Selecto': 0.50,
+    'Café Premium': 0.75,
+    'Café Clásico': 0.25,
+    'Huevos': 1.00,
+    'Maní 200gr': 0.50,
+    'Maní 400gr': 0.90
   };
   const productosNombres = ['Café Selecto','Café Premium','Café Clásico','Huevos','Maní 200gr','Maní 400gr'];
 
@@ -158,7 +150,9 @@
   const pedidosGuardados = localStorage.getItem('pedidosHoy');
   if (pedidosGuardados) pedidos = JSON.parse(pedidosGuardados);
 
-  function formatear(valor) { return '$' + valor.toLocaleString('es-CO'); }
+  function formatear(valor) {
+    return '$' + valor.toLocaleString('es-CO', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  }
 
   function cambiarTab(tab) {
     document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
@@ -168,7 +162,6 @@
     if (tab === 'resumen') renderResumen();
   }
 
-  // ---- CLIENTES ----
   function agregarCliente(tipo) {
     const input = document.getElementById('inputCliente' + (tipo==='contado'?'Contado':'Fiado'));
     const nombre = input.value.trim();
@@ -198,7 +191,11 @@
   }
 
   function actualizarProducto(tipo, cIdx, pIdx, campo, valor) {
-    clientes[tipo][cIdx].productos[pIdx][campo] = campo==='cantidad' ? parseInt(valor)||0 : valor;
+    if (campo === 'cantidad') {
+      clientes[tipo][cIdx].productos[pIdx][campo] = parseInt(valor) || 0;
+    } else {
+      clientes[tipo][cIdx].productos[pIdx][campo] = valor;
+    }
     renderClientes(tipo);
     guardarTemporal();
   }
@@ -244,7 +241,6 @@
     actualizarResumenGeneral();
   }
 
-  // ---- PEDIDOS ----
   function agregarPedido() {
     const cli = document.getElementById('inputPedidoCliente').value.trim();
     const txt = document.getElementById('inputPedido').value.trim();
@@ -269,7 +265,6 @@
     actualizarResumenGeneral();
   }
 
-  // ---- PRECIOS ----
   function renderPrecios() {
     const cont = document.getElementById('lista-precios');
     cont.innerHTML = productosNombres.map(p => `
@@ -278,14 +273,16 @@
           <div class="precio-label">${p}</div>
           <div class="precio-actual">Actual: ${formatear(precios[p])}</div>
         </div>
-        <input type="number" class="precio-input" id="precio-${p}" value="${precios[p]}" placeholder="Precio">
+        <input type="number" step="0.01" min="0" class="precio-input" id="precio-${p}" value="${precios[p].toFixed(2)}" placeholder="0.00">
       </div>`).join('');
   }
 
   function guardarPrecios() {
     productosNombres.forEach(p => {
       const v = document.getElementById('precio-'+p).value;
-      if (v && !isNaN(v) && v>0) precios[p] = parseInt(v);
+      if (v && !isNaN(v) && parseFloat(v) >= 0) {
+        precios[p] = parseFloat(v);
+      }
     });
     localStorage.setItem('preciosProductos', JSON.stringify(precios));
     renderPrecios();
@@ -297,7 +294,6 @@
     setTimeout(()=>n.style.display='none', 3000);
   }
 
-  // ---- RESUMEN ----
   function renderResumen() {
     const cont = document.getElementById('resumenClientes');
     let html = '<h3 style="margin:0 0 10px 0; color:#2c3e50; font-size:1rem;">💵 Clientes al Contado</h3>';
@@ -356,24 +352,23 @@
     clientes.contado.forEach(c => {
       const t = c.productos.reduce((s,p)=>s+(p.cantidad*precios[p.nombre]),0);
       if (t>0) {
-        detalleContado.push({cliente:c.nombre, productos:c.productos.map(p=>({nombre:p.nombre,cantidad:p.cantidad,subtotal:p.cantidad*precios[p.nombre]})), total:t});
+        detalleContado.push({cliente:c.nombre, productos:c.productos.map(p=>({nombre:p.nombre,cantidad:p.cantidad,subtotal:parseFloat((p.cantidad*precios[p.nombre]).toFixed(2))})), total:parseFloat(t.toFixed(2))});
         totalContado += t;
       }
     });
     clientes.fiado.forEach(c => {
       const t = c.productos.reduce((s,p)=>s+(p.cantidad*precios[p.nombre]),0);
       if (t>0) {
-        detalleFiado.push({cliente:c.nombre, productos:c.productos.map(p=>({nombre:p.nombre,cantidad:p.cantidad,subtotal:p.cantidad*precios[p.nombre]})), total:t});
+        detalleFiado.push({cliente:c.nombre, productos:c.productos.map(p=>({nombre:p.nombre,cantidad:p.cantidad,subtotal:parseFloat((p.cantidad*precios[p.nombre]).toFixed(2))})), total:parseFloat(t.toFixed(2))});
         totalFiado += t;
       }
     });
 
-    const registro = { fecha, contado:{detalle:detalleContado,total:totalContado}, fiado:{detalle:detalleFiado,total:totalFiado}, pedidos, granTotal:totalContado+totalFiado };
+    const registro = { fecha, contado:{detalle:detalleContado,total:parseFloat(totalContado.toFixed(2))}, fiado:{detalle:detalleFiado,total:parseFloat(totalFiado.toFixed(2))}, pedidos, granTotal:parseFloat((totalContado+totalFiado).toFixed(2)) };
     let historial = JSON.parse(localStorage.getItem('registroVentas')||'[]');
     historial.push(registro);
     localStorage.setItem('registroVentas', JSON.stringify(historial));
 
-    // Limpiar temporal
     clientes = {contado:[], fiado:[]};
     pedidos = [];
     localStorage.removeItem('clientesHoy');
@@ -388,7 +383,6 @@
     setTimeout(()=>n.style.display='none', 3000);
   }
 
-  // Inicializar
   document.getElementById('fechaHoy').textContent = new Date().toLocaleDateString('es-CO',{weekday:'long',year:'numeric',month:'long',day:'numeric'});
   renderClientes('contado');
   renderClientes('fiado');
