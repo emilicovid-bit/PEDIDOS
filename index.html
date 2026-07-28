@@ -1,0 +1,401 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>📒 Registro de Ventas por Cliente</title>
+  <style>
+    * { box-sizing: border-box; }
+    body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #f0f2f5; margin: 0; padding: 16px; }
+    .ventas-container { max-width: 460px; margin: 0 auto; padding: 16px; background: #fff; border-radius: 16px; box-shadow: 0 4px 20px rgba(0,0,0,0.08); }
+    .header { text-align: center; margin-bottom: 12px; }
+    .header h2 { margin: 0; color: #2c3e50; font-size: 1.3rem; }
+    .header .fecha { color: #888; font-size: 0.85rem; margin-top: 4px; }
+    .tabs { display: flex; gap: 4px; margin-bottom: 14px; flex-wrap: wrap; }
+    .tab { flex: 1; min-width: 70px; padding: 9px 4px; border: none; border-radius: 10px; cursor: pointer; font-weight: 600; font-size: 0.78rem; transition: all 0.2s; }
+    .tab-contado { background: #e8f5e9; color: #2e7d32; }
+    .tab-fiado { background: #fff3e0; color: #ef6c00; }
+    .tab-pedido { background: #e3f2fd; color: #1565c0; }
+    .tab-precios { background: #f3e5f5; color: #6a1b9a; }
+    .tab-resumen { background: #fce4ec; color: #c62828; }
+    .tab.active { box-shadow: 0 2px 8px rgba(0,0,0,0.15); transform: translateY(-1px); }
+    .seccion { display: none; }
+    .seccion.activa { display: block; }
+    .input-row { display: flex; gap: 8px; margin-bottom: 10px; }
+    .input-row input { flex: 1; padding: 10px; border: 1px solid #ddd; border-radius: 10px; font-size: 0.9rem; }
+    .btn-add { padding: 10px 16px; border: none; border-radius: 10px; background: #2e7d32; color: #fff; font-weight: 700; cursor: pointer; font-size: 0.85rem; }
+    .cliente-card { background: #f8f9fa; border-radius: 12px; padding: 12px; margin-bottom: 10px; }
+    .cliente-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
+    .cliente-nombre { font-weight: 700; color: #2c3e50; font-size: 1rem; }
+    .btn-eliminar-cliente { background: #ffebee; border: none; border-radius: 6px; color: #c62828; cursor: pointer; padding: 4px 10px; font-size: 0.75rem; }
+    .producto-row { display: flex; align-items: center; gap: 6px; margin-bottom: 6px; flex-wrap: wrap; }
+    .producto-row select { padding: 6px 8px; border: 1px solid #ddd; border-radius: 8px; font-size: 0.85rem; flex: 1; min-width: 120px; }
+    .producto-row input[type="number"] { width: 50px; padding: 6px; border: 1px solid #ddd; border-radius: 8px; font-size: 0.85rem; text-align: center; }
+    .producto-row .subtotal { font-size: 0.8rem; color: #2e7d32; font-weight: 600; min-width: 70px; text-align: right; }
+    .btn-mas-prod { padding: 6px 12px; border: none; border-radius: 8px; background: #e3f2fd; color: #1565c0; font-weight: 600; cursor: pointer; font-size: 0.8rem; margin-top: 4px; }
+    .btn-guardar { width: 100%; padding: 14px; margin-top: 12px; border: none; border-radius: 12px; background: #2e7d32; color: #fff; font-weight: 700; font-size: 1rem; cursor: pointer; }
+    .btn-guardar:hover { background: #1b5e20; }
+    .btn-guardar-precios { background: #6a1b9a; }
+    .btn-guardar-precios:hover { background: #4a148c; }
+    .resumen-box { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: #fff; border-radius: 14px; padding: 16px; margin-top: 16px; }
+    .resumen-titulo { font-size: 0.9rem; opacity: 0.9; margin-bottom: 8px; }
+    .resumen-fila { display: flex; justify-content: space-between; padding: 4px 0; font-size: 0.9rem; }
+    .resumen-total { border-top: 1px solid rgba(255,255,255,0.3); margin-top: 8px; padding-top: 8px; font-size: 1.1rem; font-weight: 700; }
+    .nota-guardado { text-align: center; color: #2e7d32; font-weight: 600; margin-top: 8px; display: none; }
+    .precio-card { background: #f3e5f5; border-radius: 12px; padding: 12px; margin-bottom: 10px; display: flex; align-items: center; justify-content: space-between; }
+    .precio-label { font-weight: 600; color: #4a148c; font-size: 0.95rem; }
+    .precio-actual { color: #6a1b9a; font-size: 0.85rem; }
+    .precio-input { width: 90px; padding: 6px 8px; border: 1px solid #ddd; border-radius: 8px; font-size: 0.9rem; text-align: right; }
+    .pedido-item { background: #e3f2fd; padding: 8px 12px; border-radius: 8px; margin-bottom: 6px; display: flex; justify-content: space-between; align-items: center; font-size: 0.9rem; }
+    .btn-eliminar { background: #ffebee; border: none; border-radius: 6px; color: #c62828; cursor: pointer; padding: 4px 8px; font-size: 0.8rem; }
+    .resumen-cliente { background: #fff; border-radius: 10px; padding: 10px; margin-bottom: 8px; box-shadow: 0 1px 4px rgba(0,0,0,0.06); }
+    .resumen-cliente-nombre { font-weight: 700; color: #2c3e50; }
+    .resumen-cliente-total { color: #2e7d32; font-weight: 700; }
+    .badge-fiado { background: #fff3e0; color: #ef6c00; padding: 2px 8px; border-radius: 12px; font-size: 0.75rem; font-weight: 600; }
+    .badge-contado { background: #e8f5e9; color: #2e7d32; padding: 2px 8px; border-radius: 12px; font-size: 0.75rem; font-weight: 600; }
+    .sin-clientes { text-align: center; color: #888; padding: 20px; font-style: italic; }
+    .btn-cantidad { width: 32px; height: 32px; border: none; border-radius: 8px; font-size: 1.1rem; font-weight: bold; cursor: pointer; }
+    .btn-menos { background: #ffebee; color: #c62828; }
+    .btn-mas { background: #e8f5e9; color: #2e7d32; }
+    .cantidad-valor { min-width: 28px; text-align: center; font-weight: 700; font-size: 1.1rem; color: #333; }
+    .cantidad-control { display: flex; align-items: center; gap: 8px; }
+    .producto-info { flex: 1; }
+    .producto-nombre { font-weight: 600; color: #333; font-size: 0.95rem; }
+    .producto-precio { color: #666; font-size: 0.8rem; }
+    .costo-detalle { font-size: 0.75rem; color: #888; margin-top: 2px; }
+    .costo-total { font-weight: 700; color: #2e7d32; }
+  </style>
+</head>
+<body>
+
+<div class="ventas-container">
+  <div class="header">
+    <h2>📒 Registro de Ventas por Cliente</h2>
+    <div class="fecha" id="fechaHoy"></div>
+  </div>
+
+  <div class="tabs">
+    <button class="tab tab-contado active" onclick="cambiarTab('contado')">💵 Contado</button>
+    <button class="tab tab-fiado" onclick="cambiarTab('fiado')">📝 Fiado</button>
+    <button class="tab tab-pedido" onclick="cambiarTab('pedido')">📦 Pedidos</button>
+    <button class="tab tab-resumen" onclick="cambiarTab('resumen')">📊 Resumen</button>
+    <button class="tab tab-precios" onclick="cambiarTab('precios')">⚙️ Precios</button>
+  </div>
+
+  <!-- CONTADO -->
+  <div id="seccion-contado" class="seccion activa">
+    <div class="input-row">
+      <input type="text" id="inputClienteContado" placeholder="Nombre del cliente...">
+      <button class="btn-add" onclick="agregarCliente('contado')">➕ Agregar</button>
+    </div>
+    <div id="lista-clientes-contado"></div>
+  </div>
+
+  <!-- FIADO -->
+  <div id="seccion-fiado" class="seccion">
+    <div class="input-row">
+      <input type="text" id="inputClienteFiado" placeholder="Nombre del cliente...">
+      <button class="btn-add" onclick="agregarCliente('fiado')">➕ Agregar</button>
+    </div>
+    <div id="lista-clientes-fiado"></div>
+  </div>
+
+  <!-- PEDIDOS -->
+  <div id="seccion-pedido" class="seccion">
+    <div class="input-row">
+      <input type="text" id="inputPedidoCliente" placeholder="Cliente..." style="flex:0.4">
+      <input type="text" id="inputPedido" placeholder="¿Qué pidió?" style="flex:1">
+    </div>
+    <button class="btn-add" style="width:100%; margin-bottom:12px;" onclick="agregarPedido()">➕ Agregar Pedido</button>
+    <div id="listaPedidos"></div>
+  </div>
+
+  <!-- RESUMEN -->
+  <div id="seccion-resumen" class="seccion">
+    <div id="resumenClientes"></div>
+  </div>
+
+  <!-- PRECIOS -->
+  <div id="seccion-precios" class="seccion">
+    <div id="lista-precios"></div>
+    <button class="btn-guardar btn-guardar-precios" onclick="guardarPrecios()">💾 Guardar Precios</button>
+    <div class="nota-guardado" id="notaPrecios" style="color:#6a1b9a;">✅ Precios actualizados</div>
+  </div>
+
+  <!-- RESUMEN GENERAL -->
+  <div class="resumen-box">
+    <div class="resumen-titulo">📊 Total del Día</div>
+    <div class="resumen-fila"><span>Contado:</span><span id="totalContado">$0</span></div>
+    <div class="resumen-fila"><span>Fiado:</span><span id="totalFiado">$0</span></div>
+    <div class="resumen-fila"><span>Pedidos:</span><span id="totalPedidos">0</span></div>
+    <div class="resumen-fila resumen-total"><span>TOTAL:</span><span id="granTotal">$0</span></div>
+  </div>
+
+  <button class="btn-guardar" onclick="guardarRegistro()">💾 Guardar Registro del Día</button>
+  <div class="nota-guardado" id="notaGuardado">✅ ¡Registro guardado!</div>
+</div>
+
+<script>
+  let precios = {
+    'Café Selecto': 25000,
+    'Café Premium': 30000,
+    'Café Clásico': 18000,
+    'Huevos': 15000,
+    'Maní 200gr': 5000,
+    'Maní 400gr': 9000
+  };
+  const productosNombres = ['Café Selecto','Café Premium','Café Clásico','Huevos','Maní 200gr','Maní 400gr'];
+
+  let clientes = { contado: [], fiado: [] };
+  let pedidos = [];
+
+  const preciosGuardados = localStorage.getItem('preciosProductos');
+  if (preciosGuardados) precios = JSON.parse(preciosGuardados);
+
+  const clientesGuardados = localStorage.getItem('clientesHoy');
+  if (clientesGuardados) clientes = JSON.parse(clientesGuardados);
+
+  const pedidosGuardados = localStorage.getItem('pedidosHoy');
+  if (pedidosGuardados) pedidos = JSON.parse(pedidosGuardados);
+
+  function formatear(valor) { return '$' + valor.toLocaleString('es-CO'); }
+
+  function cambiarTab(tab) {
+    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+    document.querySelectorAll('.seccion').forEach(s => s.classList.remove('activa'));
+    document.querySelector('.tab-' + tab).classList.add('active');
+    document.getElementById('seccion-' + tab).classList.add('activa');
+    if (tab === 'resumen') renderResumen();
+  }
+
+  // ---- CLIENTES ----
+  function agregarCliente(tipo) {
+    const input = document.getElementById('inputCliente' + (tipo==='contado'?'Contado':'Fiado'));
+    const nombre = input.value.trim();
+    if (!nombre) return;
+    clientes[tipo].push({ nombre, productos: [] });
+    input.value = '';
+    renderClientes(tipo);
+    guardarTemporal();
+  }
+
+  function eliminarCliente(tipo, idx) {
+    clientes[tipo].splice(idx, 1);
+    renderClientes(tipo);
+    guardarTemporal();
+  }
+
+  function agregarProductoACliente(tipo, cIdx) {
+    clientes[tipo][cIdx].productos.push({ nombre: productosNombres[0], cantidad: 1 });
+    renderClientes(tipo);
+    guardarTemporal();
+  }
+
+  function eliminarProductoCliente(tipo, cIdx, pIdx) {
+    clientes[tipo][cIdx].productos.splice(pIdx, 1);
+    renderClientes(tipo);
+    guardarTemporal();
+  }
+
+  function actualizarProducto(tipo, cIdx, pIdx, campo, valor) {
+    clientes[tipo][cIdx].productos[pIdx][campo] = campo==='cantidad' ? parseInt(valor)||0 : valor;
+    renderClientes(tipo);
+    guardarTemporal();
+  }
+
+  function renderClientes(tipo) {
+    const contenedor = document.getElementById('lista-clientes-' + tipo);
+    if (clientes[tipo].length === 0) {
+      contenedor.innerHTML = '<div class="sin-clientes">No hay clientes registrados aún</div>';
+      actualizarResumenGeneral();
+      return;
+    }
+    contenedor.innerHTML = '';
+    clientes[tipo].forEach((cli, cIdx) => {
+      const card = document.createElement('div');
+      card.className = 'cliente-card';
+      let prodHtml = '';
+      cli.productos.forEach((prod, pIdx) => {
+        const subtotal = prod.cantidad * precios[prod.nombre];
+        prodHtml += `
+          <div class="producto-row">
+            <select onchange="actualizarProducto('${tipo}',${cIdx},${pIdx},'nombre',this.value)">
+              ${productosNombres.map(p => `<option value="${p}" ${p===prod.nombre?'selected':''}>${p}</option>`).join('')}
+            </select>
+            <input type="number" min="0" value="${prod.cantidad}" onchange="actualizarProducto('${tipo}',${cIdx},${pIdx},'cantidad',this.value)">
+            <span class="subtotal">${formatear(subtotal)}</span>
+            <button class="btn-eliminar" onclick="eliminarProductoCliente('${tipo}',${cIdx},${pIdx})" title="Quitar">✕</button>
+          </div>`;
+      });
+      const totalCliente = cli.productos.reduce((sum, p) => sum + (p.cantidad * precios[p.nombre]), 0);
+      card.innerHTML = `
+        <div class="cliente-header">
+          <span class="cliente-nombre">${cli.nombre}</span>
+          <div>
+            <span style="font-weight:700; color:#2e7d32; margin-right:8px;">${formatear(totalCliente)}</span>
+            <button class="btn-eliminar-cliente" onclick="eliminarCliente('${tipo}',${cIdx})">Eliminar</button>
+          </div>
+        </div>
+        ${prodHtml}
+        <button class="btn-mas-prod" onclick="agregarProductoACliente('${tipo}',${cIdx})">➕ Agregar producto</button>
+      `;
+      contenedor.appendChild(card);
+    });
+    actualizarResumenGeneral();
+  }
+
+  // ---- PEDIDOS ----
+  function agregarPedido() {
+    const cli = document.getElementById('inputPedidoCliente').value.trim();
+    const txt = document.getElementById('inputPedido').value.trim();
+    if (!txt) return;
+    pedidos.push({ cliente: cli || 'Sin cliente', texto: txt, hora: new Date().toLocaleTimeString('es-CO',{hour:'2-digit',minute:'2-digit'}) });
+    document.getElementById('inputPedido').value = '';
+    document.getElementById('inputPedidoCliente').value = '';
+    renderPedidos();
+    guardarTemporal();
+  }
+
+  function eliminarPedido(i) { pedidos.splice(i,1); renderPedidos(); guardarTemporal(); }
+
+  function renderPedidos() {
+    const cont = document.getElementById('listaPedidos');
+    if (pedidos.length===0) { cont.innerHTML='<div class="sin-clientes">No hay pedidos aún</div>'; actualizarResumenGeneral(); return; }
+    cont.innerHTML = pedidos.map((p,i) => `
+      <div class="pedido-item">
+        <span>🕐 ${p.hora} — <b>${p.cliente}:</b> ${p.texto}</span>
+        <button class="btn-eliminar" onclick="eliminarPedido(${i})">✕</button>
+      </div>`).join('');
+    actualizarResumenGeneral();
+  }
+
+  // ---- PRECIOS ----
+  function renderPrecios() {
+    const cont = document.getElementById('lista-precios');
+    cont.innerHTML = productosNombres.map(p => `
+      <div class="precio-card">
+        <div>
+          <div class="precio-label">${p}</div>
+          <div class="precio-actual">Actual: ${formatear(precios[p])}</div>
+        </div>
+        <input type="number" class="precio-input" id="precio-${p}" value="${precios[p]}" placeholder="Precio">
+      </div>`).join('');
+  }
+
+  function guardarPrecios() {
+    productosNombres.forEach(p => {
+      const v = document.getElementById('precio-'+p).value;
+      if (v && !isNaN(v) && v>0) precios[p] = parseInt(v);
+    });
+    localStorage.setItem('preciosProductos', JSON.stringify(precios));
+    renderPrecios();
+    renderClientes('contado');
+    renderClientes('fiado');
+    renderResumen();
+    actualizarResumenGeneral();
+    const n = document.getElementById('notaPrecios'); n.style.display='block';
+    setTimeout(()=>n.style.display='none', 3000);
+  }
+
+  // ---- RESUMEN ----
+  function renderResumen() {
+    const cont = document.getElementById('resumenClientes');
+    let html = '<h3 style="margin:0 0 10px 0; color:#2c3e50; font-size:1rem;">💵 Clientes al Contado</h3>';
+    if (clientes.contado.length===0) html += '<div class="sin-clientes">Ninguno</div>';
+    clientes.contado.forEach(c => {
+      const total = c.productos.reduce((s,p)=>s+(p.cantidad*precios[p.nombre]),0);
+      html += `<div class="resumen-cliente">
+        <div class="resumen-cliente-nombre">${c.nombre} <span class="badge-contado">CONTADO</span></div>
+        <div style="font-size:0.85rem; color:#555; margin-top:4px;">
+          ${c.productos.map(p=>`${p.cantidad}x ${p.nombre}`).join(', ') || 'Sin productos'}
+        </div>
+        <div class="resumen-cliente-total" style="margin-top:4px;">${formatear(total)}</div>
+      </div>`;
+    });
+
+    html += '<h3 style="margin:16px 0 10px 0; color:#2c3e50; font-size:1rem;">📝 Clientes Fiados</h3>';
+    if (clientes.fiado.length===0) html += '<div class="sin-clientes">Ninguno</div>';
+    clientes.fiado.forEach(c => {
+      const total = c.productos.reduce((s,p)=>s+(p.cantidad*precios[p.nombre]),0);
+      html += `<div class="resumen-cliente">
+        <div class="resumen-cliente-nombre">${c.nombre} <span class="badge-fiado">FIADO</span></div>
+        <div style="font-size:0.85rem; color:#555; margin-top:4px;">
+          ${c.productos.map(p=>`${p.cantidad}x ${p.nombre}`).join(', ') || 'Sin productos'}
+        </div>
+        <div class="resumen-cliente-total" style="color:#ef6c00; margin-top:4px;">${formatear(total)}</div>
+      </div>`;
+    });
+
+    html += '<h3 style="margin:16px 0 10px 0; color:#2c3e50; font-size:1rem;">📦 Pedidos</h3>';
+    if (pedidos.length===0) html += '<div class="sin-clientes">Ninguno</div>';
+    else html += pedidos.map(p=>`<div class="pedido-item"><span>🕐 ${p.hora} — <b>${p.cliente}:</b> ${p.texto}</span></div>`).join('');
+
+    cont.innerHTML = html;
+  }
+
+  function actualizarResumenGeneral() {
+    let totalContado=0, totalFiado=0;
+    clientes.contado.forEach(c => totalContado += c.productos.reduce((s,p)=>s+(p.cantidad*precios[p.nombre]),0));
+    clientes.fiado.forEach(c => totalFiado += c.productos.reduce((s,p)=>s+(p.cantidad*precios[p.nombre]),0));
+    document.getElementById('totalContado').textContent = formatear(totalContado);
+    document.getElementById('totalFiado').textContent = formatear(totalFiado);
+    document.getElementById('totalPedidos').textContent = pedidos.length;
+    document.getElementById('granTotal').textContent = formatear(totalContado + totalFiado);
+  }
+
+  function guardarTemporal() {
+    localStorage.setItem('clientesHoy', JSON.stringify(clientes));
+    localStorage.setItem('pedidosHoy', JSON.stringify(pedidos));
+  }
+
+  function guardarRegistro() {
+    const fecha = new Date().toLocaleDateString('es-CO');
+    let detalleContado=[], detalleFiado=[];
+    let totalContado=0, totalFiado=0;
+
+    clientes.contado.forEach(c => {
+      const t = c.productos.reduce((s,p)=>s+(p.cantidad*precios[p.nombre]),0);
+      if (t>0) {
+        detalleContado.push({cliente:c.nombre, productos:c.productos.map(p=>({nombre:p.nombre,cantidad:p.cantidad,subtotal:p.cantidad*precios[p.nombre]})), total:t});
+        totalContado += t;
+      }
+    });
+    clientes.fiado.forEach(c => {
+      const t = c.productos.reduce((s,p)=>s+(p.cantidad*precios[p.nombre]),0);
+      if (t>0) {
+        detalleFiado.push({cliente:c.nombre, productos:c.productos.map(p=>({nombre:p.nombre,cantidad:p.cantidad,subtotal:p.cantidad*precios[p.nombre]})), total:t});
+        totalFiado += t;
+      }
+    });
+
+    const registro = { fecha, contado:{detalle:detalleContado,total:totalContado}, fiado:{detalle:detalleFiado,total:totalFiado}, pedidos, granTotal:totalContado+totalFiado };
+    let historial = JSON.parse(localStorage.getItem('registroVentas')||'[]');
+    historial.push(registro);
+    localStorage.setItem('registroVentas', JSON.stringify(historial));
+
+    // Limpiar temporal
+    clientes = {contado:[], fiado:[]};
+    pedidos = [];
+    localStorage.removeItem('clientesHoy');
+    localStorage.removeItem('pedidosHoy');
+    renderClientes('contado');
+    renderClientes('fiado');
+    renderPedidos();
+    actualizarResumenGeneral();
+
+    const n = document.getElementById('notaGuardado');
+    n.style.display='block';
+    setTimeout(()=>n.style.display='none', 3000);
+  }
+
+  // Inicializar
+  document.getElementById('fechaHoy').textContent = new Date().toLocaleDateString('es-CO',{weekday:'long',year:'numeric',month:'long',day:'numeric'});
+  renderClientes('contado');
+  renderClientes('fiado');
+  renderPedidos();
+  renderPrecios();
+  actualizarResumenGeneral();
+</script>
+
+</body>
+</html>
