@@ -1,5 +1,3 @@
-
-
 <!DOCTYPE html>
 <html lang="es">
 <head>
@@ -13,6 +11,10 @@
   .header { text-align: center; margin-bottom: 12px; }
   .header h2 { margin: 0; color: #2c3e50; font-size: 1.3rem; }
   .header .fecha { color: #888; font-size: 0.85rem; margin-top: 4px; }
+  .alerta-storage { display:none; background:#fdecea; border:1px solid #f5c2c0; color:#611a15; border-radius:12px; padding:12px; font-size:0.82rem; margin-bottom:12px; line-height:1.4; }
+  .alerta-storage b { display:block; margin-bottom:4px; }
+  .indicador-guardado { text-align:center; font-size:0.75rem; color:#2e7d32; margin-bottom:10px; min-height:16px; }
+  .indicador-guardado.error { color:#c62828; font-weight:700; }
   .tabs { display: flex; gap: 4px; margin-bottom: 14px; flex-wrap: wrap; }
   .tab { flex: 1; min-width: 70px; padding: 9px 4px; border: none; border-radius: 10px; cursor: pointer; font-weight: 600; font-size: 0.78rem; transition: all 0.2s; }
   .tab-cancelado { background: #e8f5e9; color: #2e7d32; }
@@ -20,6 +22,7 @@
   .tab-pedido { background: #e3f2fd; color: #1565c0; }
   .tab-precios { background: #f3e5f5; color: #6a1b9a; }
   .tab-resumen { background: #fce4ec; color: #c62828; }
+  .tab-historial { background: #ede7f6; color: #4527a0; }
   .tab.active { box-shadow: 0 2px 8px rgba(0,0,0,0.15); transform: translateY(-1px); }
   .seccion { display: none; }
   .seccion.activa { display: block; }
@@ -56,6 +59,11 @@
   .badge-credito { background: #fff3e0; color: #ef6c00; padding: 2px 8px; border-radius: 12px; font-size: 0.75rem; font-weight: 600; }
   .badge-cancelado { background: #e8f5e9; color: #2e7d32; padding: 2px 8px; border-radius: 12px; font-size: 0.75rem; font-weight: 600; }
   .sin-clientes { text-align: center; color: #888; padding: 20px; font-style: italic; }
+  .historial-dia { background:#f8f9fa; border-radius:12px; padding:12px; margin-bottom:10px; }
+  .historial-dia-header { display:flex; justify-content:space-between; align-items:center; font-weight:700; color:#2c3e50; margin-bottom:6px; }
+  .btn-mini { border:none; border-radius:6px; padding:4px 8px; font-size:0.72rem; cursor:pointer; font-weight:600; }
+  .btn-mini-exportar { background:#e3f2fd; color:#1565c0; margin-right:6px; }
+  .btn-mini-borrar { background:#ffebee; color:#c62828; }
 </style>
 </head>
 <body>
@@ -66,18 +74,27 @@
     <div class="fecha" id="fechaHoy"></div>
   </div>
 
+  <div class="alerta-storage" id="alertaStorage">
+    <b>⚠️ El guardado automático no funciona en este navegador/ventana.</b>
+    Esto pasa casi siempre cuando la página se abre dentro de WhatsApp, Instagram o Facebook (navegador interno), o en modo privado/incógnito.
+    Abre el enlace directamente en Chrome o Safari (botón "Abrir en el navegador" o copia el link) para que los datos se guarden.
+  </div>
+
+  <div class="indicador-guardado" id="indicadorGuardado">Sin cambios aún</div>
+
   <div class="tabs">
     <button class="tab tab-cancelado active" onclick="cambiarTab('cancelado')">💵 Cancelado</button>
     <button class="tab tab-credito" onclick="cambiarTab('credito')">📝 Credito</button>
     <button class="tab tab-pedido" onclick="cambiarTab('pedido')">📦 Pedidos</button>
     <button class="tab tab-resumen" onclick="cambiarTab('resumen')">📊 Resumen</button>
     <button class="tab tab-precios" onclick="cambiarTab('precios')">⚙️ Precios</button>
+    <button class="tab tab-historial" onclick="cambiarTab('historial')">🗂️ Historial</button>
   </div>
 
   <!-- CANCELADO -->
   <div id="seccion-cancelado" class="seccion activa">
     <div class="input-row">
-      <input type="text" id="inputClienteCancelado" placeholder="Nombre del cliente...">
+      <input type="text" id="inputClienteCancelado" placeholder="Nombre del cliente..." onkeydown="if(event.key==='Enter') agregarCliente('cancelado')">
       <button class="btn-add" onclick="agregarCliente('cancelado')">➕ Agregar</button>
     </div>
     <div id="lista-clientes-cancelado"></div>
@@ -86,7 +103,7 @@
   <!-- CREDITO -->
   <div id="seccion-credito" class="seccion">
     <div class="input-row">
-      <input type="text" id="inputClienteCredito" placeholder="Nombre del cliente...">
+      <input type="text" id="inputClienteCredito" placeholder="Nombre del cliente..." onkeydown="if(event.key==='Enter') agregarCliente('credito')">
       <button class="btn-add" onclick="agregarCliente('credito')">➕ Agregar</button>
     </div>
     <div id="lista-clientes-credito"></div>
@@ -96,7 +113,7 @@
   <div id="seccion-pedido" class="seccion">
     <div class="input-row">
       <input type="text" id="inputPedidoCliente" placeholder="Cliente..." style="flex:0.4">
-      <input type="text" id="inputPedido" placeholder="Que pidio?" style="flex:1">
+      <input type="text" id="inputPedido" placeholder="Que pidio?" style="flex:1" onkeydown="if(event.key==='Enter') agregarPedido()">
     </div>
     <button class="btn-add" style="width:100%; margin-bottom:12px;" onclick="agregarPedido()">➕ Agregar Pedido</button>
     <div id="listaPedidos"></div>
@@ -112,6 +129,11 @@
     <div id="lista-precios"></div>
     <button class="btn-guardar btn-guardar-precios" onclick="guardarPrecios()">💾 Guardar Precios</button>
     <div class="nota-guardado" id="notaPrecios" style="color:#6a1b9a;">✅ Precios actualizados</div>
+  </div>
+
+  <!-- HISTORIAL -->
+  <div id="seccion-historial" class="seccion">
+    <div id="listaHistorial"></div>
   </div>
 
   <!-- RESUMEN GENERAL -->
@@ -140,6 +162,50 @@
 
   let clientes = { cancelado: [], credito: [] };
   let pedidos = [];
+  let storageOK = true;
+
+  // ---------- Diagnóstico de almacenamiento ----------
+  function probarStorage() {
+    try {
+      var testKey = '__test_storage__';
+      localStorage.setItem(testKey, '1');
+      var ok = localStorage.getItem(testKey) === '1';
+      localStorage.removeItem(testKey);
+      return ok;
+    } catch (e) {
+      return false;
+    }
+  }
+
+  function mostrarAlertaStorage(mostrar) {
+    var div = document.getElementById('alertaStorage');
+    div.style.display = mostrar ? 'block' : 'none';
+  }
+
+  function marcarIndicador(estado, mensaje) {
+    var ind = document.getElementById('indicadorGuardado');
+    ind.classList.toggle('error', estado === 'error');
+    ind.textContent = mensaje;
+  }
+
+  // Guarda una clave de forma segura y reporta el resultado.
+  // Devuelve true si se guardó, false si falló.
+  function setStorageSeguro(key, valor) {
+    try {
+      localStorage.setItem(key, valor);
+      storageOK = true;
+      mostrarAlertaStorage(false);
+      var hora = new Date().toLocaleTimeString('es-CO', {hour:'2-digit', minute:'2-digit'});
+      marcarIndicador('ok', '✅ Guardado ' + hora);
+      return true;
+    } catch (e) {
+      storageOK = false;
+      mostrarAlertaStorage(true);
+      marcarIndicador('error', '⚠️ No se pudo guardar (ver aviso arriba)');
+      console.error('Error guardando en localStorage:', e);
+      return false;
+    }
+  }
 
   function cargarDatos() {
     try {
@@ -149,7 +215,9 @@
       if (c) clientes = JSON.parse(c);
       var pd = localStorage.getItem('pedidosHoy');
       if (pd) pedidos = JSON.parse(pd);
-    } catch(e) { console.log('Error cargando datos', e); }
+    } catch(e) {
+      console.log('Error cargando datos', e);
+    }
   }
 
   function formatear(valor) {
@@ -164,6 +232,7 @@
     document.querySelector('.tab-' + tab).classList.add('active');
     document.getElementById('seccion-' + tab).classList.add('activa');
     if (tab === 'resumen') renderResumen();
+    if (tab === 'historial') renderHistorial();
   }
 
   function agregarCliente(tipo) {
@@ -227,7 +296,7 @@
         }
         prodHtml += '<div class="producto-row">' +
           '<select onchange="actualizarProducto(\'' + tipo + '\',' + cIdx + ',' + pIdx + ',\'nombre\',this.value)">' + opts + '</select>' +
-          '<input type="number" min="0" value="' + prod.cantidad + '" onchange="actualizarProducto(\'' + tipo + '\',' + cIdx + ',' + pIdx + ',\'cantidad\',this.value)">' +
+          '<input type="number" min="0" value="' + prod.cantidad + '" oninput="actualizarProducto(\'' + tipo + '\',' + cIdx + ',' + pIdx + ',\'cantidad\',this.value)">' +
           '<span class="subtotal">' + formatear(subtotal) + '</span>' +
           '<button class="btn-eliminar" onclick="eliminarProductoCliente(\'' + tipo + '\',' + cIdx + ',' + pIdx + ')" title="Quitar">✕</button>' +
         '</div>';
@@ -319,15 +388,19 @@
         }
       }
     }
-    localStorage.setItem('preciosProductos', JSON.stringify(precios));
+    var guardadoOk = setStorageSeguro('preciosProductos', JSON.stringify(precios));
     renderPrecios();
     renderClientes('cancelado');
     renderClientes('credito');
     renderResumen();
     actualizarResumenGeneral();
-    var n = document.getElementById('notaPrecios');
-    n.style.display = 'block';
-    setTimeout(function() { n.style.display = 'none'; }, 3000);
+    if (guardadoOk) {
+      var n = document.getElementById('notaPrecios');
+      n.style.display = 'block';
+      setTimeout(function() { n.style.display = 'none'; }, 3000);
+    } else {
+      alert('No se pudieron guardar los precios. Revisa el aviso en la parte superior de la página (probablemente estás en modo privado o dentro de un navegador de WhatsApp/Instagram).');
+    }
   }
 
   function renderResumen() {
@@ -404,8 +477,12 @@
   }
 
   function guardarTemporal() {
-    localStorage.setItem('clientesHoy', JSON.stringify(clientes));
-    localStorage.setItem('pedidosHoy', JSON.stringify(pedidos));
+    var ok1 = setStorageSeguro('clientesHoy', JSON.stringify(clientes));
+    // Si la primera falló ya se marcó el error; igual intentamos la segunda.
+    var ok2 = setStorageSeguro('pedidosHoy', JSON.stringify(pedidos));
+    if (!ok1 || !ok2) {
+      // el indicador ya quedó en modo error por setStorageSeguro
+    }
   }
 
   function guardarRegistro() {
@@ -453,9 +530,19 @@
       granTotal: parseFloat((totalCancelado + totalCredito).toFixed(2))
     };
 
-    var historial = JSON.parse(localStorage.getItem('registroVentas') || '[]');
+    var historial = [];
+    try {
+      historial = JSON.parse(localStorage.getItem('registroVentas') || '[]');
+    } catch(e) {
+      historial = [];
+    }
     historial.push(registro);
-    localStorage.setItem('registroVentas', JSON.stringify(historial));
+    var guardadoOk = setStorageSeguro('registroVentas', JSON.stringify(historial));
+
+    if (!guardadoOk) {
+      alert('⚠️ El registro del día NO se pudo guardar en este navegador. Copia los totales manualmente antes de cerrar la página. Luego abre el enlace directamente en Chrome/Safari (no dentro de WhatsApp/Instagram) para evitar que esto vuelva a pasar.');
+      return; // no borramos los datos del día si no se logró archivar
+    }
 
     clientes = { cancelado: [], credito: [] };
     pedidos = [];
@@ -471,7 +558,89 @@
     setTimeout(function() { n.style.display = 'none'; }, 3000);
   }
 
-  // Inicializar
+  // ---------- Historial ----------
+  function cargarHistorial() {
+    try {
+      return JSON.parse(localStorage.getItem('registroVentas') || '[]');
+    } catch(e) {
+      return [];
+    }
+  }
+
+  function renderHistorial() {
+    var cont = document.getElementById('listaHistorial');
+    if (!cont) return;
+    var historial = cargarHistorial();
+    if (historial.length === 0) {
+      cont.innerHTML = '<div class="sin-clientes">Aún no hay registros de días guardados</div>';
+      return;
+    }
+    var html = '';
+    for (var i = historial.length - 1; i >= 0; i--) {
+      var r = historial[i];
+      html += '<div class="historial-dia">' +
+        '<div class="historial-dia-header"><span>' + r.fecha + '</span><span>' + formatear(r.granTotal) + '</span></div>' +
+        '<div style="font-size:0.82rem; color:#555;">Cancelado: ' + formatear(r.cancelado.total) + ' · Credito: ' + formatear(r.credito.total) + ' · Pedidos: ' + (r.pedidos ? r.pedidos.length : 0) + '</div>' +
+        '<div style="margin-top:8px;">' +
+          '<button class="btn-mini btn-mini-exportar" onclick="exportarDiaCSV(' + i + ')">⬇️ Exportar CSV</button>' +
+          '<button class="btn-mini btn-mini-borrar" onclick="borrarDiaHistorial(' + i + ')">🗑️ Borrar</button>' +
+        '</div>' +
+      '</div>';
+    }
+    cont.innerHTML = html;
+  }
+
+  function borrarDiaHistorial(idx) {
+    if (!confirm('¿Borrar este día del historial? Esta acción no se puede deshacer.')) return;
+    var historial = cargarHistorial();
+    historial.splice(idx, 1);
+    setStorageSeguro('registroVentas', JSON.stringify(historial));
+    renderHistorial();
+  }
+
+  function exportarDiaCSV(idx) {
+    var historial = cargarHistorial();
+    var r = historial[idx];
+    if (!r) return;
+    var lineas = [];
+    lineas.push('Fecha,Tipo,Cliente,Producto,Cantidad,Subtotal');
+    r.cancelado.detalle.forEach(function(c) {
+      c.productos.forEach(function(p) {
+        lineas.push([r.fecha, 'Cancelado', c.cliente, p.nombre, p.cantidad, p.subtotal].join(','));
+      });
+    });
+    r.credito.detalle.forEach(function(c) {
+      c.productos.forEach(function(p) {
+        lineas.push([r.fecha, 'Credito', c.cliente, p.nombre, p.cantidad, p.subtotal].join(','));
+      });
+    });
+    (r.pedidos || []).forEach(function(p) {
+      lineas.push([r.fecha, 'Pedido', p.cliente, p.texto, '', ''].join(','));
+    });
+    lineas.push('');
+    lineas.push(['TOTAL', '', '', '', '', r.granTotal].join(','));
+
+    var csv = lineas.join('\n');
+    var blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+    var url = URL.createObjectURL(blob);
+    var a = document.createElement('a');
+    a.href = url;
+    a.download = 'ventas_' + r.fecha.replace(/\//g,'-') + '.csv';
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  }
+
+  // ---------- Inicializar ----------
+  storageOK = probarStorage();
+  mostrarAlertaStorage(!storageOK);
+  if (storageOK) {
+    marcarIndicador('ok', 'Almacenamiento local funcionando correctamente');
+  } else {
+    marcarIndicador('error', '⚠️ El guardado automático está bloqueado en este navegador');
+  }
+
   cargarDatos();
   var hoy = new Date();
   var opciones = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
